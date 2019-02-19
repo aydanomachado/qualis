@@ -7,6 +7,7 @@ Comparação entre qualis das áreas de pesquisa no IC
 """
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 #IndArtProg ou IndArtDP = ( 1,0*A1 + 0,85*A2 + 0,7*B1 + 0,55*B2 + 0,4*B3 + 0,25*B4 + 0,1*B5)
 def qualis2num(qualis):
@@ -96,4 +97,80 @@ mpe_inter_desc.name = 'Mat., Prob. e Est.'
 Inter_desc = pd.concat([eng4_inter_desc, mpe_inter_desc, cc_inter_desc], axis=1).transpose()
 Inter_desc.columns.name = 'Interdisciplinar - X'
 
+# descritivo dos qualis de cada área
+n_periodicos = pd.DataFrame(columns=['nº total de periódicos', 'interseção com a CC', 'interseção com o Inter'])
+n_periodicos.loc['Ciência da Computação'] = [len(qualis_cc), 'Total', len(cc_inter)]
+n_periodicos.loc['Engenharias IV'] = [len(qualis_eng4), len(eng4_cc), len(eng4_inter)]
+n_periodicos.loc['Interdisciplinar'] = [len(qualis_inter), len(inter_cc), 'Total']
+n_periodicos.loc['Mat. Prob. e Est.'] = [len(qualis_mpe), len(mpe_cc), len(mpe_inter)]
 
+# implementação dos gráficos
+def plotCCBars():
+    plt.figure(figsize=(18, 6), dpi= 80, facecolor='w', edgecolor='k')
+
+    plt.subplot(1, 3, 1)
+    plt.ylim(-1,+1)
+    plt.title('Ciência da Computação')
+    plt.xlabel('Periódico')
+    plt.ylabel('Engenharias IV')
+    y_pos = np.arange(len(eng4_cc['CC_Eng4']))
+    height = eng4_cc['CC_Eng4'].sort_values()
+    bar_color = np.where(height<0, 'red', 'blue')
+    plt.bar(y_pos, height, color=bar_color)
+    
+    plt.subplot(1, 3, 2)
+    plt.ylim(-1,+1)
+    plt.title('Ciência da Computação')
+    plt.xlabel('Periódico')
+    plt.ylabel('Mat. Prob. e Est.')
+    y_pos = np.arange(len(mpe_cc['CC_MPE']))
+    height = mpe_cc['CC_MPE'].sort_values()
+    bar_color = np.where(height<0, 'red', 'blue')
+    plt.bar(y_pos, height, color=bar_color)
+    
+    plt.subplot(1, 3, 3)
+    plt.ylim(-1,+1)
+    plt.title('Ciência da Computação')
+    plt.xlabel('Periódico')
+    plt.ylabel('Interdisciplinar')
+    y_pos = np.arange(len(inter_cc['CC_Inter']))
+    height = inter_cc['CC_Inter'].sort_values()
+    bar_color = np.where(height<0, 'red', 'blue')
+    plt.bar(y_pos, height, color=bar_color)
+    
+    plt.show()
+    
+def plotInterBars():
+    plt.figure(figsize=(18, 6), dpi= 80, facecolor='w', edgecolor='k')
+
+    plt.subplot(1, 3, 1)
+    plt.ylim(-1,+1)
+    plt.title('Interdisciplinar')
+    plt.xlabel('Periódico')
+    plt.ylabel('Engenharias IV')
+    y_pos = np.arange(len(eng4_inter['Inter_Eng4']))
+    height = eng4_inter['Inter_Eng4'].sort_values()
+    bar_color = np.where(height<0, 'red', 'blue')
+    plt.bar(y_pos, height, color=bar_color)
+    
+    plt.subplot(1, 3, 2)
+    plt.ylim(-1,+1)
+    plt.title('Interdisciplinar')
+    plt.xlabel('Periódico')
+    plt.ylabel('Mat. Prob. e Est.')
+    y_pos = np.arange(len(mpe_inter['Inter_MPE']))
+    height = mpe_inter['Inter_MPE'].sort_values()
+    bar_color = np.where(height<0, 'red', 'blue')
+    plt.bar(y_pos, height, color=bar_color)
+    
+    plt.subplot(1, 3, 3)
+    plt.ylim(-1,+1)
+    plt.title('Interdisciplinar')
+    plt.xlabel('Periódico')
+    plt.ylabel('Ciência da Computação')
+    y_pos = np.arange(len(cc_inter['Inter_CC']))
+    height = cc_inter['Inter_CC'].sort_values()
+    bar_color = np.where(height<0, 'red', 'blue')
+    plt.bar(y_pos, height, color=bar_color)
+    
+    plt.show()
