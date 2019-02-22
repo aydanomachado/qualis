@@ -7,6 +7,7 @@ Comparação entre qualis das áreas de pesquisa no IC
 """
 import pandas as pd
 import numpy as np
+import os.path
 import matplotlib.pyplot as plt
 
 #IndArtProg ou IndArtDP = ( 1,0*A1 + 0,85*A2 + 0,7*B1 + 0,55*B2 + 0,4*B3 + 0,25*B4 + 0,1*B5)
@@ -46,6 +47,12 @@ qualis_cc = trimAllColumns(qualis_cc)
 qualis_eng4 = trimAllColumns(qualis_eng4)
 qualis_inter = trimAllColumns(qualis_inter)
 qualis_mpe = trimAllColumns(qualis_mpe)
+# removendo linhas repetidas (descoberto depois que no qualis tem duplicatas de revistas)....
+# removendo as que tem ISSN e Estrato iguais
+qualis_cc.drop_duplicates(subset=['ISSN', 'Estrato'], inplace=True)
+qualis_eng4.drop_duplicates(subset=['ISSN', 'Estrato'], inplace=True)
+qualis_inter.drop_duplicates(subset=['ISSN', 'Estrato'], inplace=True)
+qualis_mpe.drop_duplicates(subset=['ISSN', 'Estrato'], inplace=True)
 # adicionando coluna com o valor do periódico
 qualis_cc['CC'] = qualis_cc['Estrato'].apply(qualis2num)
 qualis_eng4['Eng4'] = qualis_eng4['Estrato'].apply(qualis2num)
@@ -103,6 +110,23 @@ n_periodicos.loc['Ciência da Computação'] = [len(qualis_cc), 'Total', len(cc_
 n_periodicos.loc['Engenharias IV'] = [len(qualis_eng4), len(eng4_cc), len(eng4_inter)]
 n_periodicos.loc['Interdisciplinar'] = [len(qualis_inter), len(inter_cc), 'Total']
 n_periodicos.loc['Mat. Prob. e Est.'] = [len(qualis_mpe), len(mpe_cc), len(mpe_inter)]
+
+# gerando compilação de periódicos
+periodicosICCompleto = pd.read_excel('data/producaoCCeInterCompleto.xlsx')
+periodicosICCompleto.drop(columns=['JRC', 'H', 'Area', 'Cod_Area', 'J', 'Preenchimento'], inplace=True)
+sum_periodicos = periodicosICCompleto.groupby(['Pesquisador']).sum()
+sum_periodicos.drop(columns=['Ano'], inplace=True)
+sum_periodicos['Inter_CC'] = sum_periodicos.apply(lambda row: row.Inter - row.CC, axis=1)
+
+# salvando excel com avaliações se ele não existir
+prod_file = 'output/compilacao_completa_periodicosIC.xlsx'
+if not os.path.isfile(prod_file):
+    writer = pd.ExcelWriter(prod_file)
+    sum_periodicos.to_excel(writer,'Periodicos')
+    writer.save()
+    
+somatorio = pd.DataFrame(sum_periodicos.apply(np.sum), columns=['TOTAL'])
+total = sum_periodicos.sort_values(by='Inter_CC').append(somatorio.T)
 
 # implementação dos gráficos
 def plotCCBars():
@@ -174,3 +198,27 @@ def plotInterBars():
     plt.bar(y_pos, height, color=bar_color)
     
     plt.show()
+
+def plotICbars(lim=0.55):
+    plt.figure(figsize=(16, 10), dpi= 80, facecolor='w', edgecolor='k')
+    sum_periodicos_sorted = sum_periodicos.sort_values(by='Inter_CC', ascending=False)
+    height = sum_periodicos_sorted['Inter_CC'].values
+    bars = sum_periodicos_sorted.index
+    y_pos = np.arange(len(bars))
+    bar_color = np.where(height<0, 'r', 'b')
+    for i, v in enumerate(height):
+        x = v
+        if v < 0:
+            x = 0
+        if -lim <= v and v<=lim:
+            bar_color[i] = 'g'
+        plt.text(x + 0.1, i, " %.2f" % v, color=bar_color[i], va='center', fontweight='bold')
+    plt.barh(y_pos, height, color=bar_color)
+    plt.yticks(y_pos, bars)
+    plt.show()
+
+    
+    
+    
+    
+    
