@@ -117,6 +117,8 @@ periodicosICCompleto.drop(columns=['JRC', 'H', 'Area', 'Cod_Area', 'J', 'Preench
 sum_periodicos = periodicosICCompleto.groupby(['Pesquisador']).sum()
 sum_periodicos.drop(columns=['Ano'], inplace=True)
 sum_periodicos['Inter_CC'] = sum_periodicos.apply(lambda row: row.Inter - row.CC, axis=1)
+sum_periodicos['Percentual'] = sum_periodicos.apply(lambda row: row.Inter_CC*100/max(row.Inter,row.CC), axis=1)
+
 
 # salvando excel com avaliações se ele não existir
 prod_file = 'output/compilacao_completa_periodicosIC.xlsx'
@@ -213,6 +215,24 @@ def plotICbars(lim=0.55):
         if -lim <= v and v<=lim:
             bar_color[i] = 'g'
         plt.text(x + 0.1, i, " %.2f" % v, color=bar_color[i], va='center', fontweight='bold')
+    plt.barh(y_pos, height, color=bar_color)
+    plt.yticks(y_pos, bars)
+    plt.show()
+    
+def plotICbarsPer(lim=5):
+    plt.figure(figsize=(16, 10), dpi= 80, facecolor='w', edgecolor='k')
+    sum_periodicos_sorted = sum_periodicos.sort_values(by='Percentual', ascending=False)
+    height = sum_periodicos_sorted['Percentual'].values
+    bars = sum_periodicos_sorted.index
+    y_pos = np.arange(len(bars))
+    bar_color = np.where(height<0, 'r', 'b')
+    for i, v in enumerate(height):
+        x = v
+        if v < 0:
+            x = 0
+        if -lim <= v and v<=lim:
+            bar_color[i] = 'g'
+        plt.text(x + 0.1, i, " %.2f" % v + " %", color=bar_color[i], va='center', fontweight='bold')
     plt.barh(y_pos, height, color=bar_color)
     plt.yticks(y_pos, bars)
     plt.show()
